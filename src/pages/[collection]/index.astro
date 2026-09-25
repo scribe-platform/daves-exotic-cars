@@ -70,7 +70,7 @@ function firstImage(entry: CollectionEntry<any>): string | null {
       <a class="catalog-card" href={url(`/${CATALOG_COLLECTION}/${entry.id}`)}>
         {firstImage(entry) && (
           <div class="catalog-card-image">
-            <img src={firstImage(entry)!} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} loading="lazy" />
+            <img src={url(firstImage(entry)!)} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} loading="lazy" />
           </div>
         )}
         <div class="catalog-card-body">

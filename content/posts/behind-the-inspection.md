@@ -1,7 +1,7 @@
 ---
 title: "Behind the Inspection: What We Check Before Any Car Hits the Floor"
 date: 2026-09-18
-heroImage: https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&q=80
+heroImage: /images/posts/behind-the-inspection.jpg
 ---
 Every car we list goes through the same process before it's offered for sale —
 no exceptions, regardless of how clean it looks on arrival.

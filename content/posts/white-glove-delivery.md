@@ -1,7 +1,7 @@
 ---
 title: "White-Glove Delivery: How We Get Your Car to You, Anywhere"
 date: 2026-09-24
-heroImage: https://images.unsplash.com/photo-1520031441872-265e4ff70366?w=1600&q=80
+heroImage: /images/posts/white-glove-delivery.jpg
 ---
 Not every buyer is local, and we don't think that should limit which car you
 end up with. Here's how delivery actually works.

@@ -6,7 +6,7 @@ year: 2015
 price: 3200000
 mileage: 1200
 images:
-  - https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1600&q=80
+  - /images/cars/ferrari-laferrari.jpg
 featured: true
 active: true
 ---

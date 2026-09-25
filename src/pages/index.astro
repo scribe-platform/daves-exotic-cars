@@ -17,7 +17,7 @@ import { formatPrice } from '../lib/catalog';
 
 // Wide, dramatic shot used as the hero backdrop — swap for a real showroom/
 // lot photo whenever one's available; this is a stand-in for the prototype.
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=1920&q=80';
+const HERO_IMAGE = '/images/site/home-hero.jpg';
 
 let featured: CollectionEntry<any>[] = [];
 if (CATALOG_COLLECTION) {
@@ -56,7 +56,7 @@ function formatEventDate(d: Date): string {
 <Base title="Home" description={`${SITE_NAME} — managed with Scribe.`}>
   <section
     class="hero"
-    style={`background-image: linear-gradient(180deg, rgba(12,11,9,0.35) 0%, rgba(12,11,9,0.6) 55%, rgba(12,11,9,0.95) 100%), url(${HERO_IMAGE});`}
+    style={`background-image: linear-gradient(180deg, rgba(12,11,9,0.35) 0%, rgba(12,11,9,0.6) 55%, rgba(12,11,9,0.95) 100%), url(${url(HERO_IMAGE)});`}
   >
     <span class="eyebrow">Curated. Verified. Unforgettable.</span>
     <h1>Drive something extraordinary.</h1>
@@ -98,7 +98,7 @@ function formatEventDate(d: Date): string {
           <a class="card teaser-card" href={url(`/${CATALOG_COLLECTION}/${entry.id}`)}>
             {firstImage(entry) && (
               <div class="teaser-card-image">
-                <img src={firstImage(entry)!} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} loading="lazy" />
+                <img src={url(firstImage(entry)!)} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} loading="lazy" />
               </div>
             )}
             <div class="teaser-card-body">
@@ -119,7 +119,7 @@ function formatEventDate(d: Date): string {
       <a class="event-feature" href={url(`/events/${nextEvent.id}`)}>
         {nextEvent.data.image && (
           <div class="event-feature-image">
-            <img src={nextEvent.data.image} alt={nextEvent.data.title} loading="lazy" />
+            <img src={url(nextEvent.data.image)} alt={nextEvent.data.title} loading="lazy" />
           </div>
         )}
         <div class="event-feature-body">
@@ -138,7 +138,7 @@ function formatEventDate(d: Date): string {
       <a class="post-feature" href={url(`/blog/${latestPost.id}`)}>
         {latestPost.data.heroImage && (
           <div class="post-feature-image">
-            <img src={latestPost.data.heroImage} alt={latestPost.data.title} loading="lazy" />
+            <img src={url(latestPost.data.heroImage)} alt={latestPost.data.title} loading="lazy" />
           </div>
         )}
         <div class="post-feature-body">

@@ -2,7 +2,7 @@
 title: "Track Day at Summit Point"
 date: 2026-11-08T08:00:00Z
 location: Summit Point Raceway, Summit Point, WV
-image: https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1600&q=80
+image: /images/events/track-day-summit-point.jpg
 ---
 A full day on track, run in run-groups by experience level, with instructors
 available for anyone who wants seat time with a coach.

@@ -6,7 +6,7 @@ year: 2020
 price: 165000
 mileage: 7800
 images:
-  - https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1600&q=80
+  - /images/cars/mercedes-amg-gt-r.jpg
 featured: false
 active: true
 ---

@@ -6,7 +6,7 @@ year: 2021
 price: 3400000
 mileage: 850
 images:
-  - https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1600&q=80
+  - /images/cars/bugatti-chiron.jpg
 featured: true
 active: true
 ---

@@ -23,7 +23,7 @@ function formatDate(d: Date): string {
   <div class="event-list">
     {upcoming.map((event) => (
       <a class="event-row" href={url(`/events/${event.id}`)}>
-        {event.data.image && <img src={event.data.image} alt="" loading="lazy" />}
+        {event.data.image && <img src={url(event.data.image)} alt="" loading="lazy" />}
         <span class="event-meta">
           <time datetime={event.data.date.toISOString()}>{formatDate(event.data.date)}</time>
           <span class="event-title">{event.data.title}</span>
@@ -39,7 +39,7 @@ function formatDate(d: Date): string {
       <div class="event-list past">
         {past.map((event) => (
           <a class="event-row" href={url(`/events/${event.id}`)}>
-            {event.data.image && <img src={event.data.image} alt="" loading="lazy" />}
+            {event.data.image && <img src={url(event.data.image)} alt="" loading="lazy" />}
             <span class="event-meta">
               <time datetime={event.data.date.toISOString()}>{formatDate(event.data.date)}</time>
               <span class="event-title">{event.data.title}</span>

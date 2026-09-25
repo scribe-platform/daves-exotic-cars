@@ -47,10 +47,10 @@ const images: string[] = CATALOG_IMAGE_FIELD
   <article class="catalog-detail">
     {images.length > 0 && (
       <div class="gallery">
-        <div class="gallery-main"><img src={images[0]} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} /></div>
+        <div class="gallery-main"><img src={url(images[0])} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} /></div>
         {images.length > 1 && (
           <div class="gallery-strip">
-            {images.slice(1).map((src) => <img src={src} alt="" loading="lazy" />)}
+            {images.slice(1).map((src) => <img src={url(src)} alt="" loading="lazy" />)}
           </div>
         )}
       </div>

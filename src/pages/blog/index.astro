@@ -14,7 +14,7 @@ const posts = (await getCollection('posts')).sort(
     {posts.map((post) => (
       <li>
         <a class="post-row" href={url(`/blog/${post.id}`)}>
-          {post.data.heroImage && <img src={post.data.heroImage} alt="" loading="lazy" />}
+          {post.data.heroImage && <img src={url(post.data.heroImage)} alt="" loading="lazy" />}
           <span class="post-meta">
             <span class="post-title">{post.data.title}</span>
             {post.data.author && <span class="author"> by {post.data.author}</span>}

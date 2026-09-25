@@ -6,7 +6,7 @@ year: 2022
 price: 385000
 mileage: 2100
 images:
-  - https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?w=1600&q=80
+  - /images/cars/lamborghini-huracan-performante-spyder.jpg
 featured: true
 active: true
 ---

@@ -6,7 +6,7 @@ year: 2023
 price: 178000
 mileage: 4200
 images:
-  - https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80
+  - /images/cars/porsche-panamera-turbo-s.jpg
 featured: false
 active: true
 ---

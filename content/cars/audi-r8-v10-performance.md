@@ -6,7 +6,7 @@ year: 2021
 price: 195000
 mileage: 5600
 images:
-  - https://images.unsplash.com/photo-1493238792000-8113da705763?w=1600&q=80
+  - /images/cars/audi-r8-v10-performance.jpg
 featured: false
 active: true
 ---

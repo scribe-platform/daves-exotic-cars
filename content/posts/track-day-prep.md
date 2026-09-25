@@ -1,7 +1,7 @@
 ---
 title: "Track Day Prep: Getting Your Supercar Ready"
 date: 2026-09-10
-heroImage: https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=1600&q=80
+heroImage: /images/posts/track-day-prep.jpg
 ---
 Buying the car is the easy part. Showing up to your first track day prepared
 is where most owners get caught out.

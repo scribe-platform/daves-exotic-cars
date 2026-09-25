@@ -23,7 +23,7 @@ function formatDate(d: Date): string {
 <Base title={event.data.title}>
   <a class="back-link" href={url('/events')}>&larr; Back to events</a>
   <article class="event-detail">
-    {event.data.image && <img class="hero-image" src={event.data.image} alt={event.data.title} />}
+    {event.data.image && <img class="hero-image" src={url(event.data.image)} alt={event.data.title} />}
     <h1>{event.data.title}</h1>
     <p class="when-where">
       <time datetime={event.data.date.toISOString()}>{formatDate(event.data.date)}</time>
