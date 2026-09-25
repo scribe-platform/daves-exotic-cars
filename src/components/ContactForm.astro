@@ -57,7 +57,7 @@ function labelFor(field: string): string {
     )
   ))}
   <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>
-  <button type="submit">Request my free quote</button>
+  <button type="submit">Send my request</button>
   <p id="scribe-contact-status" role="status"></p>
 </form>
 
@@ -67,13 +67,15 @@ function labelFor(field: string): string {
   #scribe-contact-form input, #scribe-contact-form textarea {
     font: inherit;
     padding: 10px 12px;
-    border: 1px solid var(--border, #dde5df);
+    border: 1px solid var(--border, #2a251c);
     border-radius: 8px;
+    background: var(--panel, #17140f);
+    color: var(--ink, #f1efe8);
   }
   #scribe-contact-form button {
     align-self: flex-start;
-    background: var(--green-700, #2f7a4f);
-    color: white;
+    background: var(--gold, #c9a24b);
+    color: #14110c;
     border: none;
     padding: 12px 24px;
     border-radius: 999px;

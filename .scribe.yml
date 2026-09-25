@@ -1,6 +1,46 @@
 site: daves-exotic-cars
+siteName: "Dave's Exotic Cars"
 contactCollection: inquiries
 collections:
+  - name: cars
+    label: Cars
+    path: content/cars
+    format: yaml-frontmatter
+    view:
+      primary: title
+      sort: price
+    fields:
+      - name: title
+        type: string
+        required: true
+      - name: make
+        type: string
+        required: true
+      - name: model
+        type: string
+        required: true
+      - name: year
+        type: number
+        required: true
+      - name: price
+        type: number
+        required: true
+      - name: mileage
+        type: number
+      - name: images
+        type: image
+        list:
+          min: 1
+        required: true
+      - name: featured
+        type: boolean
+        default: false
+      - name: active
+        type: boolean
+        default: true
+      - name: description
+        type: rich-text
+        isBody: true
   - name: posts
     label: Posts
     path: content/posts
@@ -38,6 +78,12 @@ collections:
       - name: email
         type: string
         required: true
+      - name: phone
+        type: string
+        label: Phone
+      - name: carOfInterest
+        type: string
+        label: Car of Interest
       - name: message
         type: text
         required: true

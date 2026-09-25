@@ -19,5 +19,9 @@
   },
   "devDependencies": {
     "yaml": "^2.6.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "fsevents": true
   }
 }

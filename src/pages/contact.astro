@@ -4,8 +4,8 @@ import ContactForm from '../components/ContactForm.astro';
 import { CONTACT_COLLECTION, CONTACT_FIELDS, SITE_SLUG, TURNSTILE_SITE_KEY } from '../site-config';
 ---
 <Base title="Contact">
-  <h1>Tell us about your lawn</h1>
-  <p>Fill out the form below and we'll follow up to schedule your free quote. No commitment required.</p>
+  <h1>Request more information</h1>
+  <p>Interested in a car, financing, or a private viewing? Tell us what you're after and we'll follow up shortly.</p>
   <ContactForm
     site={SITE_SLUG}
     collection={CONTACT_COLLECTION}
@@ -13,3 +13,13 @@ import { CONTACT_COLLECTION, CONTACT_FIELDS, SITE_SLUG, TURNSTILE_SITE_KEY } fro
     fields={CONTACT_FIELDS.length > 0 ? CONTACT_FIELDS : undefined}
   />
 </Base>
+
+<script is:inline>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const car = params.get('car');
+    if (!car) return;
+    const field = document.querySelector('#scribe-contact-form [name="carOfInterest"]');
+    if (field) field.value = car;
+  })();
+</script>

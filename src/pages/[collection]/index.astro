@@ -10,7 +10,9 @@ import { url } from '../../lib/base';
 import {
   CATALOG_ACTIVE_FIELD,
   CATALOG_COLLECTION,
+  CATALOG_FEATURED_FIELD,
   CATALOG_FIELDS,
+  CATALOG_IMAGE_FIELD,
   CATALOG_LABEL,
   CATALOG_PRICE_FIELD,
   CATALOG_SORT_FIELD,
@@ -41,11 +43,24 @@ const sorted = CATALOG_SORT_FIELD
     })
   : visible;
 
-// Secondary fields shown on each card: everything except the title and price
-// (title is the heading, price gets its own prominent line).
+// Secondary fields shown on each card: numeric spec fields only (year,
+// mileage, ...) — text fields like make/model are already implied by the
+// title, and internal flags (active, featured) aren't customer-facing.
 const secondaryFields = CATALOG_FIELDS.filter(
-  (f) => f.name !== CATALOG_TITLE_FIELD && f.name !== CATALOG_PRICE_FIELD && f.name !== CATALOG_ACTIVE_FIELD,
+  (f) =>
+    f.type === 'number' &&
+    f.name !== CATALOG_TITLE_FIELD &&
+    f.name !== CATALOG_PRICE_FIELD &&
+    f.name !== CATALOG_ACTIVE_FIELD &&
+    f.name !== CATALOG_FEATURED_FIELD &&
+    f.name !== CATALOG_IMAGE_FIELD,
 );
+
+function firstImage(entry: CollectionEntry<any>): string | null {
+  if (!CATALOG_IMAGE_FIELD) return null;
+  const value = entry.data[CATALOG_IMAGE_FIELD];
+  return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+}
 ---
 <Base title={CATALOG_LABEL ?? 'Catalog'}>
   <h1>{CATALOG_LABEL}</h1>
@@ -53,33 +68,43 @@ const secondaryFields = CATALOG_FIELDS.filter(
   <div class="catalog-grid">
     {sorted.map((entry) => (
       <a class="catalog-card" href={url(`/${CATALOG_COLLECTION}/${entry.id}`)}>
+        {firstImage(entry) && (
+          <div class="catalog-card-image">
+            <img src={firstImage(entry)!} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} loading="lazy" />
+          </div>
+        )}
+        <div class="catalog-card-body">
         <h2>{entry.data[CATALOG_TITLE_FIELD] ?? entry.id}</h2>
         {CATALOG_PRICE_FIELD && entry.data[CATALOG_PRICE_FIELD] != null && (
-          <p class="price">{formatPrice(entry.data[CATALOG_PRICE_FIELD])} <small>/ month</small></p>
+          <p class="price">{formatPrice(entry.data[CATALOG_PRICE_FIELD])}</p>
         )}
         {secondaryFields.map((field) => (
           entry.data[field.name] != null && (
             <p class="field"><strong>{field.label}:</strong> {formatFieldValue(entry.data[field.name])}</p>
           )
         ))}
+        </div>
       </a>
     ))}
   </div>
   <style>
-    .catalog-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 24px; }
+    .catalog-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 24px; }
     .catalog-card {
       display: block;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 14px;
+      overflow: hidden;
       text-decoration: none;
       color: var(--ink);
-      background: white;
-      transition: border-color 0.15s ease;
+      background: var(--panel);
+      transition: border-color 0.15s ease, transform 0.15s ease;
     }
-    .catalog-card:hover { border-color: var(--green-700); }
+    .catalog-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .catalog-card-image { aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+    .catalog-card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .catalog-card-body { padding: 20px; }
     .catalog-card h2 { margin: 0 0 8px; }
-    .catalog-card .price { font-weight: 700; color: var(--green-700); margin: 0 0 8px; }
+    .catalog-card .price { font-weight: 700; color: var(--gold); margin: 0 0 8px; font-size: 1.15rem; }
     .catalog-card .field { margin: 0 0 4px; font-size: 0.9rem; color: var(--ink-soft); }
   </style>
 </Base>
