@@ -6,6 +6,7 @@ import {
   CATALOG_ACTIVE_FIELD,
   CATALOG_COLLECTION,
   CATALOG_FEATURED_FIELD,
+  CATALOG_IMAGE_FIELD,
   CATALOG_LABEL,
   CATALOG_PRICE_FIELD,
   CATALOG_SORT_FIELD,
@@ -13,6 +14,10 @@ import {
   SITE_NAME,
 } from '../site-config';
 import { formatPrice } from '../lib/catalog';
+
+// Wide, dramatic shot used as the hero backdrop — swap for a real showroom/
+// lot photo whenever one's available; this is a stand-in for the prototype.
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=1920&q=80';
 
 let featured: CollectionEntry<any>[] = [];
 if (CATALOG_COLLECTION) {
@@ -26,9 +31,33 @@ if (CATALOG_COLLECTION) {
     : sorted;
   featured = prioritized.slice(0, 3);
 }
+
+function firstImage(entry: CollectionEntry<any>): string | null {
+  if (!CATALOG_IMAGE_FIELD) return null;
+  const value = entry.data[CATALOG_IMAGE_FIELD];
+  return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+}
+
+const posts = (await getCollection('posts')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const latestPost = posts[0];
+
+const now = new Date();
+const upcomingEvents = (await getCollection('events'))
+  .filter((e) => e.data.date.valueOf() >= now.valueOf())
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+const nextEvent = upcomingEvents[0];
+
+function formatEventDate(d: Date): string {
+  const date = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
+  return `${date} · ${time}`;
+}
 ---
 <Base title="Home" description={`${SITE_NAME} — managed with Scribe.`}>
-  <section class="hero">
+  <section
+    class="hero"
+    style={`background-image: linear-gradient(180deg, rgba(12,11,9,0.35) 0%, rgba(12,11,9,0.6) 55%, rgba(12,11,9,0.95) 100%), url(${HERO_IMAGE});`}
+  >
     <span class="eyebrow">Curated. Verified. Unforgettable.</span>
     <h1>Drive something extraordinary.</h1>
     <p class="hero-sub">
@@ -66,34 +95,118 @@ if (CATALOG_COLLECTION) {
       <h2>Featured {CATALOG_LABEL}</h2>
       <div class="card-grid">
         {featured.map((entry) => (
-          <a class="card" href={url(`/${CATALOG_COLLECTION}/${entry.id}`)}>
-            <h3>{entry.data[CATALOG_TITLE_FIELD] ?? entry.id}</h3>
-            {CATALOG_PRICE_FIELD && entry.data[CATALOG_PRICE_FIELD] != null && (
-              <p class="price">{formatPrice(entry.data[CATALOG_PRICE_FIELD])}</p>
+          <a class="card teaser-card" href={url(`/${CATALOG_COLLECTION}/${entry.id}`)}>
+            {firstImage(entry) && (
+              <div class="teaser-card-image">
+                <img src={firstImage(entry)!} alt={entry.data[CATALOG_TITLE_FIELD] ?? entry.id} loading="lazy" />
+              </div>
             )}
+            <div class="teaser-card-body">
+              <h3>{entry.data[CATALOG_TITLE_FIELD] ?? entry.id}</h3>
+              {CATALOG_PRICE_FIELD && entry.data[CATALOG_PRICE_FIELD] != null && (
+                <p class="price">{formatPrice(entry.data[CATALOG_PRICE_FIELD])}</p>
+              )}
+            </div>
           </a>
         ))}
       </div>
     </section>
   )}
 
+  {nextEvent && (
+    <section class="next-event">
+      <h2>Next Event</h2>
+      <a class="event-feature" href={url(`/events/${nextEvent.id}`)}>
+        {nextEvent.data.image && (
+          <div class="event-feature-image">
+            <img src={nextEvent.data.image} alt={nextEvent.data.title} loading="lazy" />
+          </div>
+        )}
+        <div class="event-feature-body">
+          <time datetime={nextEvent.data.date.toISOString()}>{formatEventDate(nextEvent.data.date)}</time>
+          <h3>{nextEvent.data.title}</h3>
+          <p class="event-feature-location">{nextEvent.data.location}</p>
+          <span class="read-more">View event details →</span>
+        </div>
+      </a>
+    </section>
+  )}
+
+  {latestPost && (
+    <section class="latest-post">
+      <h2>From the Blog</h2>
+      <a class="post-feature" href={url(`/blog/${latestPost.id}`)}>
+        {latestPost.data.heroImage && (
+          <div class="post-feature-image">
+            <img src={latestPost.data.heroImage} alt={latestPost.data.title} loading="lazy" />
+          </div>
+        )}
+        <div class="post-feature-body">
+          <time datetime={latestPost.data.date.toISOString()}>
+            {latestPost.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
+          </time>
+          <h3>{latestPost.data.title}</h3>
+          <span class="read-more">Read the post →</span>
+        </div>
+      </a>
+    </section>
+  )}
+
   <p class="managed-note">This site is managed with Scribe. Read the <a href={url('/blog')}>blog</a> or <a href={url('/contact')}>get in touch</a>.</p>
 
   <style>
-    .hero { text-align: center; padding: 56px 0 64px; }
+    .hero {
+      text-align: center;
+      padding: 96px 24px;
+      margin: -32px -24px 48px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 0 0 24px 24px;
+    }
     .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; font-weight: 700; color: var(--gold-bright); }
-    .hero h1 { font-size: 2.8rem; margin: 12px 0; color: var(--ink); }
-    .hero-sub { max-width: 560px; margin: 0 auto 28px; color: var(--ink-soft); }
+    .hero h1 { font-size: 2.8rem; margin: 12px 0; color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.5); }
+    .hero-sub { max-width: 560px; margin: 0 auto 28px; color: #e8e4d9; }
     .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
     .btn { display: inline-block; padding: 12px 24px; border-radius: 999px; font-weight: 700; text-decoration: none; }
     .btn-primary { background: var(--gold); color: #14110c; }
-    .btn-secondary { background: transparent; color: var(--gold-bright); border: 1px solid var(--gold); }
-    section.why-us, section.teaser { margin: 48px 0; }
+    .btn-secondary { background: rgba(12,11,9,0.4); color: var(--gold-bright); border: 1px solid var(--gold); }
+    section.why-us, section.teaser, section.next-event, section.latest-post { margin: 48px 0; }
+    .post-feature, .event-feature {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--panel);
+      text-decoration: none;
+      color: var(--ink);
+      transition: border-color 0.15s ease;
+    }
+    .post-feature:hover, .event-feature:hover { border-color: var(--gold); }
+    .post-feature-image, .event-feature-image { aspect-ratio: 16 / 10; background: #000; }
+    .post-feature-image img, .event-feature-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .post-feature-body, .event-feature-body { padding: 20px 28px 20px 0; }
+    .post-feature-body time, .event-feature-body time { color: var(--gold-bright); font-size: 0.85rem; font-weight: 700; }
+    .post-feature-body h3, .event-feature-body h3 { font-size: 1.4rem; margin: 8px 0 12px; }
+    .event-feature-location { color: var(--ink-soft); margin: 0 0 12px; }
+    .post-feature-body .read-more, .event-feature-body .read-more { color: var(--gold-bright); font-weight: 700; }
+    @media (max-width: 640px) {
+      .post-feature, .event-feature { grid-template-columns: 1fr; }
+      .post-feature-body, .event-feature-body { padding: 4px 20px 20px; }
+    }
     section h2 { text-align: center; margin-bottom: 24px; }
     .card-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
     .card { display: block; border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--panel); color: var(--ink); text-decoration: none; }
     .card h3 { margin-top: 0; }
     .price { font-weight: 700; color: var(--gold-bright); }
+    .teaser-card { padding: 0; overflow: hidden; transition: border-color 0.15s ease, transform 0.15s ease; }
+    .teaser-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .teaser-card-image { aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+    .teaser-card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .teaser-card-body { padding: 16px 20px 20px; }
+    .teaser-card-body h3 { margin-bottom: 6px; }
     .managed-note { text-align: center; color: var(--ink-soft); font-size: 0.9rem; margin-top: 48px; }
   </style>
 </Base>

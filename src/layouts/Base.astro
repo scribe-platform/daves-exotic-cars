@@ -24,6 +24,7 @@ const { title, siteName = SITE_NAME, description } = Astro.props;
       <nav>
         <a href={url('/')}>Home</a>
         {CATALOG_COLLECTION && <a href={url(`/${CATALOG_COLLECTION}`)}>{CATALOG_LABEL}</a>}
+        <a href={url('/events')}>Events</a>
         <a href={url('/blog')}>Blog</a>
         <a href={url('/contact')} class="nav-cta">Contact</a>
       </nav>

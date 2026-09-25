@@ -1,0 +1,67 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/base';
+
+const now = new Date();
+const events = (await getCollection('events')).sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+const upcoming = events.filter((e) => e.data.date.valueOf() >= now.valueOf());
+const past = events.filter((e) => e.data.date.valueOf() < now.valueOf()).reverse();
+
+function formatDate(d: Date): string {
+  const date = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
+  return `${date} · ${time}`;
+}
+---
+<Base title="Events">
+  <h1>Meetups &amp; Track Events</h1>
+  <p class="intro">Cars & coffee, track days, and owner meetups — come see the collection in person.</p>
+
+  <h2>Upcoming</h2>
+  {upcoming.length === 0 && <p>No upcoming events scheduled — check back soon.</p>}
+  <div class="event-list">
+    {upcoming.map((event) => (
+      <a class="event-row" href={url(`/events/${event.id}`)}>
+        {event.data.image && <img src={event.data.image} alt="" loading="lazy" />}
+        <span class="event-meta">
+          <time datetime={event.data.date.toISOString()}>{formatDate(event.data.date)}</time>
+          <span class="event-title">{event.data.title}</span>
+          <span class="event-location">{event.data.location}</span>
+        </span>
+      </a>
+    ))}
+  </div>
+
+  {past.length > 0 && (
+    <>
+      <h2>Past events</h2>
+      <div class="event-list past">
+        {past.map((event) => (
+          <a class="event-row" href={url(`/events/${event.id}`)}>
+            {event.data.image && <img src={event.data.image} alt="" loading="lazy" />}
+            <span class="event-meta">
+              <time datetime={event.data.date.toISOString()}>{formatDate(event.data.date)}</time>
+              <span class="event-title">{event.data.title}</span>
+              <span class="event-location">{event.data.location}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </>
+  )}
+
+  <style>
+    .intro { color: var(--ink-soft); margin-bottom: 32px; }
+    h2 { margin: 32px 0 16px; }
+    .event-list { display: flex; flex-direction: column; gap: 12px; }
+    .event-list.past { opacity: 0.65; }
+    .event-row { display: flex; gap: 16px; align-items: center; text-decoration: none; color: var(--ink); border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--panel); transition: border-color 0.15s ease; }
+    .event-row:hover { border-color: var(--gold); }
+    .event-row img { width: 120px; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+    .event-meta { display: flex; flex-direction: column; gap: 2px; }
+    .event-meta time { color: var(--gold-bright); font-size: 0.85rem; font-weight: 700; }
+    .event-title { font-weight: 700; font-size: 1.05rem; }
+    .event-location { color: var(--ink-soft); font-size: 0.9rem; }
+  </style>
+</Base>

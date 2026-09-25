@@ -22,7 +22,7 @@ const { Content } = await render(post);
     <time datetime={post.data.date.toISOString()}>
       {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
     </time>
-    {post.data.heroImage && <img src={url(post.data.heroImage)} alt="" />}
+    {post.data.heroImage && <img class="hero-image" src={post.data.heroImage} alt="" />}
     <div class="prose">
       <Content />
     </div>
@@ -30,6 +30,7 @@ const { Content } = await render(post);
   <style>
     .back-link { display: inline-block; margin-bottom: 16px; font-weight: 600; }
     .author { color: var(--ink-soft); margin-bottom: 4px; }
+    .hero-image { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; margin-top: 16px; }
     .prose { margin-top: 16px; }
   </style>
 </Base>

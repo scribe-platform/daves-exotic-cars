@@ -1,0 +1,57 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/base';
+
+export async function getStaticPaths() {
+  const events = await getCollection('events');
+  return events.map((event) => ({
+    params: { slug: event.id },
+    props: { event },
+  }));
+}
+
+const { event } = Astro.props;
+const { Content } = await render(event);
+
+function formatDate(d: Date): string {
+  const date = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
+  return `${date} · ${time}`;
+}
+---
+<Base title={event.data.title}>
+  <a class="back-link" href={url('/events')}>&larr; Back to events</a>
+  <article class="event-detail">
+    {event.data.image && <img class="hero-image" src={event.data.image} alt={event.data.title} />}
+    <h1>{event.data.title}</h1>
+    <p class="when-where">
+      <time datetime={event.data.date.toISOString()}>{formatDate(event.data.date)}</time>
+      <span class="sep">·</span>
+      <span>{event.data.location}</span>
+    </p>
+    {Content && (
+      <div class="prose">
+        <Content />
+      </div>
+    )}
+    <a class="btn" href={url('/contact')}>Ask about this event</a>
+  </article>
+  <style>
+    .back-link { display: inline-block; margin-bottom: 16px; font-weight: 600; }
+    .hero-image { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; margin-bottom: 24px; }
+    .when-where { color: var(--gold-bright); font-weight: 700; }
+    .when-where .sep { color: var(--ink-soft); margin: 0 8px; }
+    .prose { margin: 20px 0; }
+    .btn {
+      display: inline-block;
+      margin-top: 12px;
+      background: var(--gold);
+      color: #14110c;
+      padding: 12px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</Base>
