@@ -4,6 +4,7 @@ contactCollection: inquiries
 collections:
   - name: cars
     label: Cars
+    description: Inventory listed on the site's showroom.
     path: content/cars
     format: yaml-frontmatter
     view:
@@ -43,6 +44,7 @@ collections:
         isBody: true
   - name: events
     label: Events
+    description: Upcoming events shown on the site's events page.
     path: content/events
     format: yaml-frontmatter
     view:
@@ -65,6 +67,7 @@ collections:
         isBody: true
   - name: posts
     label: Posts
+    description: Articles shown on the site's blog page.
     path: content/posts
     format: yaml-frontmatter
     view:
@@ -84,6 +87,7 @@ collections:
         isBody: true
   - name: inquiries
     label: Inquiries
+    description: Submissions from the site's contact form.
     path: content/inquiries
     format: yaml
     form: true
