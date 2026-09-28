@@ -1,6 +1,7 @@
 site: daves-exotic-cars
-siteName: "Dave's Exotic Cars"
+siteName: Dave's Exotic Cars
 contactCollection: inquiries
+turnstileSiteKey: 0x4AAAAAAFHtLCWg1S7IznJp
 collections:
   - name: cars
     label: Cars
@@ -14,34 +15,68 @@ collections:
       - name: title
         type: string
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: make
         type: string
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: model
         type: string
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: year
         type: number
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: price
         type: number
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: mileage
         type: number
+        required: false
+        hidden: false
+        readonly: false
+        isBody: false
       - name: images
         type: image
+        required: true
+        hidden: false
+        readonly: false
+        isBody: false
         list:
           min: 1
-        required: true
       - name: featured
         type: boolean
+        required: false
         default: false
+        hidden: false
+        readonly: false
+        isBody: false
       - name: active
         type: boolean
+        required: false
         default: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: description
         type: rich-text
+        required: false
+        hidden: false
+        readonly: false
         isBody: true
+    form: false
   - name: events
     label: Events
     description: Upcoming events shown on the site's events page.
@@ -54,17 +89,34 @@ collections:
       - name: title
         type: string
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: date
         type: date
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: location
         type: string
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: image
         type: image
+        required: false
+        hidden: false
+        readonly: false
+        isBody: false
       - name: description
         type: rich-text
+        required: false
+        hidden: false
+        readonly: false
         isBody: true
+    form: false
   - name: posts
     label: Posts
     description: Articles shown on the site's blog page.
@@ -77,19 +129,66 @@ collections:
       - name: title
         type: string
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: date
         type: date
         required: true
+        hidden: false
+        readonly: false
+        isBody: false
       - name: heroImage
         type: image
+        required: false
+        hidden: false
+        readonly: false
+        isBody: false
       - name: body
         type: rich-text
+        required: false
+        hidden: false
+        readonly: false
         isBody: true
+    form: false
   - name: inquiries
     label: Inquiries
     description: Submissions from the site's contact form.
     path: content/inquiries
     format: yaml
+    fields:
+      - name: name
+        type: string
+        required: true
+        hidden: false
+        readonly: false
+        isBody: false
+      - name: email
+        type: string
+        required: true
+        hidden: false
+        readonly: false
+        isBody: false
+      - name: phone
+        type: string
+        label: Phone
+        required: false
+        hidden: false
+        readonly: false
+        isBody: false
+      - name: carOfInterest
+        type: string
+        label: Car of Interest
+        required: false
+        hidden: false
+        readonly: false
+        isBody: false
+      - name: message
+        type: text
+        required: true
+        hidden: false
+        readonly: false
+        isBody: false
     form: true
     workflow:
       field: status
@@ -97,19 +196,3 @@ collections:
         - new
         - read
         - archived
-    fields:
-      - name: name
-        type: string
-        required: true
-      - name: email
-        type: string
-        required: true
-      - name: phone
-        type: string
-        label: Phone
-      - name: carOfInterest
-        type: string
-        label: Car of Interest
-      - name: message
-        type: text
-        required: true
