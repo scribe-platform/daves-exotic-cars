@@ -13,7 +13,7 @@ export interface Props {
 // unset repo variable (`vars.PUBLIC_SCRIBE_API_URL` in deploy.yml) to an
 // empty string rather than leaving it undefined, so `??` alone doesn't
 // fall back — an empty string must be treated the same as unset.
-const DEFAULT_API_BASE = import.meta.env.PUBLIC_SCRIBE_API_URL || 'https://app.scribecms.com';
+const DEFAULT_API_BASE = import.meta.env.PUBLIC_SCRIBE_API_URL || 'https://scribe.weaverdigital.io';
 
 const {
   site,
