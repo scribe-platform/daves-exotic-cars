@@ -191,8 +191,9 @@ collections:
         isBody: false
     form: true
     workflow:
-      field: status
       states:
-        - new
-        - read
-        - archived
+        - { name: new,      label: New,                 kind: needs-you }
+        - { name: open,     label: Open,                kind: needs-you }
+        - { name: waiting,  label: Waiting on customer, kind: waiting }
+        - { name: done,     label: Done,                kind: closed }
+        - { name: archived, label: Archived,            kind: closed, hidden: true }
