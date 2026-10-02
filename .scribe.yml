@@ -192,16 +192,32 @@ collections:
     form: true
     workflow:
       states:
-        - { name: new,      label: New,                 kind: needs-you }
-        - { name: open,     label: Open,                kind: needs-you }
-        - { name: waiting,  label: Waiting on customer, kind: waiting }
-        - { name: done,     label: Done,                kind: closed }
-        - { name: archived, label: Archived,            kind: closed, hidden: true }
+        - name: new
+          label: New
+          kind: needs-you
+          hidden: false
+        - name: open
+          label: Open
+          kind: needs-you
+          hidden: false
+        - name: waiting
+          label: Waiting on customer
+          kind: waiting
+          hidden: false
+        - name: done
+          label: Done
+          kind: closed
+          hidden: false
+        - name: archived
+          label: Archived
+          kind: closed
+          hidden: true
   - name: rsvps
     label: Event RSVPs
-    description: Replies to the invitations on the site's events page.
+    description: Replies to the invitations on the events page.
     path: content/rsvps
     format: yaml
+    form: true
     fields:
       - name: fullName
         type: string
@@ -212,25 +228,28 @@ collections:
       - name: mobile
         type: string
         label: Mobile
-        required: false
       - name: eventTitle
         type: string
         label: Event
         required: true
       - name: guests
         type: number
-        required: false
       - name: attending
         type: boolean
-        required: false
-        default: true
+        label: I'll be there
       - name: dietaryNotes
         type: text
-        required: false
-    form: true
     workflow:
       states:
-        - { name: pending,   label: Awaiting reply, kind: needs-you }
-        - { name: waitlist,  label: Waitlisted,     kind: waiting }
-        - { name: confirmed, label: Confirmed,      kind: closed }
-        - { name: declined,  label: Declined,       kind: closed }
+        - name: pending
+          label: Awaiting reply
+          kind: needs-you
+        - name: waitlist
+          label: Waitlisted
+          kind: waiting
+        - name: confirmed
+          label: Confirmed
+          kind: closed
+        - name: declined
+          label: Declined
+          kind: closed
