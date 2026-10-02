@@ -1,7 +1,9 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import ScribeForm from '../../components/ScribeForm.astro';
 import { url } from '../../lib/base';
+import { formFields, loadScribeSchema } from '../../lib/scribe';
 
 export async function getStaticPaths() {
   const events = await getCollection('events');
@@ -13,6 +15,9 @@ export async function getStaticPaths() {
 
 const { event } = Astro.props;
 const { Content } = await render(event);
+
+const schema = loadScribeSchema();
+const rsvpFields = formFields('rsvps');
 
 function formatDate(d: Date): string {
   const date = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
@@ -36,6 +41,23 @@ function formatDate(d: Date): string {
       </div>
     )}
     <a class="btn" href={url('/contact')}>Ask about this event</a>
+
+    {rsvpFields.length > 0 && (
+      <section class="rsvp">
+        <h2>Let us know you're coming</h2>
+        <p>RSVP below and we'll save you a spot.</p>
+        {/* `eventTitle` is prefilled from the page, so the RSVP lands in the
+            inbox already saying which event it's for. */}
+        <ScribeForm
+          site={schema.site}
+          collection="rsvps"
+          turnstileSiteKey={schema.turnstileSiteKey ?? 'dev-mock-key'}
+          fields={rsvpFields}
+          submitLabel="Send my RSVP"
+          prefill={{ eventTitle: event.data.title }}
+        />
+      </section>
+    )}
   </article>
   <style>
     .back-link { display: inline-block; margin-bottom: 16px; font-weight: 600; }
@@ -43,6 +65,9 @@ function formatDate(d: Date): string {
     .when-where { color: var(--gold-bright); font-weight: 700; }
     .when-where .sep { color: var(--ink-soft); margin: 0 8px; }
     .prose { margin: 20px 0; }
+    .rsvp { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .rsvp h2 { margin-bottom: 4px; }
+    .rsvp p { color: var(--ink-soft); }
     .btn {
       display: inline-block;
       margin-top: 12px;

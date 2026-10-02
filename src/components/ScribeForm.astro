@@ -1,0 +1,159 @@
+---
+import type { ScribeField } from '../lib/scribe';
+
+export interface Props {
+  site: string;
+  collection: string;
+  turnstileSiteKey: string;
+  fields: ScribeField[];
+  submitLabel?: string;
+  /** Values this page already knows, rendered hidden so the visitor doesn't retype them. */
+  prefill?: Record<string, string>;
+}
+
+// GitHub Actions resolves an unset repo variable to an empty string rather than
+// leaving it undefined, so `??` wouldn't fall back here — `||` is required.
+const DEFAULT_API_BASE = import.meta.env.PUBLIC_SCRIBE_API_URL || 'https://scribe.weaverdigital.io';
+
+const { site, collection, turnstileSiteKey, fields, submitLabel = 'Send', prefill = {} } = Astro.props;
+
+// Scoped to the collection so a page can carry more than one form.
+const formId = `scribe-form-${collection}`;
+
+function labelFor(field: ScribeField): string {
+  if (field.label) return field.label;
+  const words = field.name
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+// The control comes from the declared type. A name match only picks the
+// keyboard hint for an email/phone input — never whether a field is required.
+function inputType(field: ScribeField): string {
+  if (field.type === 'number') return 'number';
+  if (field.type === 'date') return 'date';
+  if (/mail/i.test(field.name)) return 'email';
+  if (/phone|mobile|tel|cell/i.test(field.name)) return 'tel';
+  return 'text';
+}
+---
+<form id={formId} data-site={site} data-collection={collection} data-endpoint={`${DEFAULT_API_BASE}/api/submissions`}>
+  {fields.map((field) =>
+    prefill[field.name] !== undefined ? (
+      <input type="hidden" name={field.name} value={prefill[field.name]} />
+    ) : field.type === 'boolean' ? (
+      <label class="checkbox">
+        <input name={field.name} type="checkbox" />
+        <span>{labelFor(field)}</span>
+      </label>
+    ) : field.type === 'text' || field.type === 'rich-text' ? (
+      <label>
+        {labelFor(field)}
+        <textarea name={field.name} required={field.required} rows="4"></textarea>
+      </label>
+    ) : field.type === 'select' ? (
+      <label>
+        {labelFor(field)}
+        <select name={field.name} required={field.required}>
+          <option value="">Choose…</option>
+          {(field.options ?? []).map((opt) => {
+            const value = typeof opt === 'string' ? opt : opt.value;
+            const text = typeof opt === 'string' ? opt : (opt.label ?? opt.value);
+            return <option value={value}>{text}</option>;
+          })}
+        </select>
+      </label>
+    ) : (
+      <label>
+        {labelFor(field)}
+        <input name={field.name} type={inputType(field)} required={field.required} />
+      </label>
+    ),
+  )}
+  <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>
+  <button type="submit">{submitLabel}</button>
+  <p class="form-status" role="status" aria-live="polite"></p>
+</form>
+
+<style>
+  form { display: flex; flex-direction: column; gap: 14px; max-width: 480px; margin-top: 24px; }
+  form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+  form label.checkbox { flex-direction: row; align-items: center; gap: 8px; }
+  form label.checkbox input { width: auto; }
+  form input, form textarea, form select {
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid var(--border, #2a251c);
+    border-radius: 8px;
+    background: var(--panel, #17140f);
+    color: var(--ink, #f1efe8);
+  }
+  form button {
+    align-self: flex-start;
+    background: var(--gold, #c9a24b);
+    color: #14110c;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  form button[disabled] { opacity: 0.6; cursor: default; }
+  .form-status:empty { display: none; }
+</style>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script is:inline define:vars={{ formId }}>
+  (function () {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const statusEl = form.querySelector('.form-status');
+    const button = form.querySelector('button[type=submit]');
+    const say = (message) => {
+      if (statusEl) statusEl.textContent = message;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Built per control rather than from FormData, so a checkbox sends a real
+      // boolean and an unchecked box sends `false` instead of being left out.
+      const payload = {};
+      for (const el of form.elements) {
+        if (!el.name) continue;
+        if (el.type === 'checkbox') payload[el.name] = el.checked;
+        else if (el.type === 'number') payload[el.name] = el.value === '' ? null : Number(el.value);
+        else payload[el.name] = el.value;
+      }
+
+      const url =
+        `${form.dataset.endpoint}?site=${encodeURIComponent(form.dataset.site)}` +
+        `&collection=${encodeURIComponent(form.dataset.collection)}`;
+
+      button.disabled = true;
+      say('Sending…');
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          // On 400 and 503 the server's copy is written for the visitor, so it
+          // beats anything generic we'd say here.
+          const data = await res.json().catch(() => ({}));
+          say(data.error || "Sorry — we couldn't send that. Please try again.");
+          button.disabled = false;
+          return;
+        }
+        form.reset();
+        say('Thanks — we’ve got you down.');
+      } catch {
+        say("Sorry — we couldn't reach us just now. Please call or email instead.");
+      }
+      button.disabled = false;
+    });
+  })();
+</script>
