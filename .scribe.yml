@@ -197,3 +197,40 @@ collections:
         - { name: waiting,  label: Waiting on customer, kind: waiting }
         - { name: done,     label: Done,                kind: closed }
         - { name: archived, label: Archived,            kind: closed, hidden: true }
+  - name: rsvps
+    label: Event RSVPs
+    description: Replies to the invitations on the site's events page.
+    path: content/rsvps
+    format: yaml
+    fields:
+      - name: fullName
+        type: string
+        required: true
+      - name: email
+        type: string
+        required: true
+      - name: mobile
+        type: string
+        label: Mobile
+        required: false
+      - name: eventTitle
+        type: string
+        label: Event
+        required: true
+      - name: guests
+        type: number
+        required: false
+      - name: attending
+        type: boolean
+        required: false
+        default: true
+      - name: dietaryNotes
+        type: text
+        required: false
+    form: true
+    workflow:
+      states:
+        - { name: pending,   label: Awaiting reply, kind: needs-you }
+        - { name: waitlist,  label: Waitlisted,     kind: waiting }
+        - { name: confirmed, label: Confirmed,      kind: closed }
+        - { name: declined,  label: Declined,       kind: closed }
