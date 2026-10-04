@@ -42,7 +42,7 @@ function labelFor(field: string): string {
     .replace(/^./, (c) => c.toUpperCase());
 }
 ---
-<form id="scribe-contact-form" data-site={site} data-collection={collection} data-endpoint={submissionEndpoint}>
+<form id="scribe-contact-form" data-site={site} data-collection={collection} data-endpoint={submissionEndpoint} data-scribe-retry>
   {fields.map((field) => (
     TEXTAREA_FIELDS.has(field) ? (
       <label>
@@ -127,6 +127,11 @@ function labelFor(field: string): string {
       }
     }
 
+    // Last resorts only. The endpoint puts visitor-facing copy in the response
+    // body (RFC 0004), so the server's message beats anything generic here.
+    const UNREACHABLE = "We couldn't send that yet — it's saved and will retry.";
+    const GENERIC = "We couldn't send that. Please try again, or call or email us instead.";
+
     async function send(payload) {
       const url = `${endpoint}?site=${encodeURIComponent(site)}&collection=${encodeURIComponent(collection)}`;
       const res = await fetch(url, {
@@ -134,9 +139,15 @@ function labelFor(field: string): string {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        throw new Error(`submission failed: ${res.status}`);
-      }
+      if (res.ok) return;
+      // A non-2xx means the server answered and said why, which is a different
+      // thing from never reaching it. `answered` picks whose copy the visitor
+      // reads; `retryable` decides whether a later attempt could plausibly land.
+      const body = await res.json().catch(() => ({}));
+      const error = new Error((body.error ?? '').trim() || GENERIC);
+      error.answered = true;
+      error.retryable = res.status >= 500;
+      throw error;
     }
 
     async function retryPending() {
@@ -146,9 +157,14 @@ function labelFor(field: string): string {
         await send(pending);
         clearPending();
         setStatus('Submitted!');
-      } catch {
-        // Still offline/unreachable — leave it pending and try again on
-        // the next page load rather than looping here.
+      } catch (err) {
+        // Replaying a rejection (a stale Turnstile token, a validation error)
+        // on every page load would loop forever, so drop it and show what the
+        // server said. Anything else stays queued for next time.
+        if (err.answered && !err.retryable) {
+          clearPending();
+          setStatus(err.message);
+        }
       }
     }
 
@@ -157,13 +173,25 @@ function labelFor(field: string): string {
       const data = new FormData(form);
       const payload = Object.fromEntries(data.entries());
 
+      setStatus('Sending…');
       try {
         await send(payload);
+        clearPending();
         setStatus('Submitted!');
         form.reset();
-      } catch {
-        savePending(payload);
-        setStatus("We couldn't send that yet — it's saved and will retry.");
+      } catch (err) {
+        // Never claim a success the server didn't give, and never paper over
+        // its message with ours.
+        if (err.answered) {
+          if (err.retryable) savePending(payload);
+          setStatus(err.message);
+        } else {
+          savePending(payload);
+          setStatus(UNREACHABLE);
+        }
+        // A Turnstile token is single-use, so without a reset the retry we just
+        // invited would send a spent token and fail no matter what.
+        window.turnstile?.reset();
       }
     });
 

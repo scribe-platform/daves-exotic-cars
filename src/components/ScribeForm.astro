@@ -39,7 +39,7 @@ function inputType(field: ScribeField): string {
   return 'text';
 }
 ---
-<form id={formId} data-site={site} data-collection={collection} data-endpoint={`${DEFAULT_API_BASE}/api/submissions`}>
+<form id={formId} data-site={site} data-collection={collection} data-endpoint={`${DEFAULT_API_BASE}/api/submissions`} data-scribe-retry>
   {fields.map((field) =>
     prefill[field.name] !== undefined ? (
       <input type="hidden" name={field.name} value={prefill[field.name]} />
@@ -115,11 +115,46 @@ function inputType(field: ScribeField): string {
       if (statusEl) statusEl.textContent = message;
     };
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+    const { site, collection, endpoint } = form.dataset;
 
-      // Built per control rather than from FormData, so a checkbox sends a real
-      // boolean and an unchecked box sends `false` instead of being left out.
+    // RFC 0024 — a submission the server never received is kept here and
+    // replayed on the next page load, so a visitor is never told their enquiry
+    // sent when it did not. The <form> declares this with data-scribe-retry;
+    // the two belong together and must not separate.
+    const storageKey = `scribe_pending_submission_${site}_${collection}`;
+
+    const readPending = () => {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    };
+    const savePending = (payload) => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(payload));
+      } catch {
+        // localStorage unavailable (private browsing, quota). The status
+        // message is already honest; there is nothing more to persist.
+      }
+    };
+    const clearPending = () => {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        // see savePending
+      }
+    };
+
+    // Last resorts only. The endpoint puts visitor-facing copy in the response
+    // body (RFC 0004), so the server's message beats anything generic here.
+    const UNREACHABLE = "We couldn't send that yet — it's saved and will retry.";
+    const GENERIC = "Sorry — we couldn't send that. Please try again.";
+
+    // Built per control rather than from FormData, so a checkbox sends a real
+    // boolean and an unchecked box sends `false` instead of being left out.
+    function collect() {
       const payload = {};
       for (const el of form.elements) {
         if (!el.name) continue;
@@ -127,33 +162,74 @@ function inputType(field: ScribeField): string {
         else if (el.type === 'number') payload[el.name] = el.value === '' ? null : Number(el.value);
         else payload[el.name] = el.value;
       }
+      return payload;
+    }
 
+    async function send(payload) {
       const url =
-        `${form.dataset.endpoint}?site=${encodeURIComponent(form.dataset.site)}` +
-        `&collection=${encodeURIComponent(form.dataset.collection)}`;
+        `${endpoint}?site=${encodeURIComponent(site)}` +
+        `&collection=${encodeURIComponent(collection)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) return;
+      // A non-2xx means the server answered and said why, which is a different
+      // thing from never reaching it. `answered` picks whose copy the visitor
+      // reads; `retryable` decides whether a later attempt could plausibly land.
+      const data = await res.json().catch(() => ({}));
+      const error = new Error((data.error ?? '').trim() || GENERIC);
+      error.answered = true;
+      error.retryable = res.status >= 500;
+      throw error;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = collect();
 
       button.disabled = true;
       say('Sending…');
       try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          // On 400 and 503 the server's copy is written for the visitor, so it
-          // beats anything generic we'd say here.
-          const data = await res.json().catch(() => ({}));
-          say(data.error || "Sorry — we couldn't send that. Please try again.");
-          button.disabled = false;
-          return;
-        }
+        await send(payload);
+        clearPending();
         form.reset();
-        say('Thanks — we’ve got you down.');
-      } catch {
-        say("Sorry — we couldn't reach us just now. Please call or email instead.");
+        say('Thanks — we\u2019ve got you down.');
+      } catch (err) {
+        // Never claim a success the server didn't give, and never paper over
+        // its message with ours.
+        if (err.answered) {
+          if (err.retryable) savePending(payload);
+          say(err.message);
+        } else {
+          savePending(payload);
+          say(UNREACHABLE);
+        }
+        // A Turnstile token is single-use, so without a reset the retry we just
+        // invited would send a spent token and fail no matter what.
+        window.turnstile?.reset();
       }
       button.disabled = false;
     });
+
+    // Replay on the next page load, which is what makes the queue worth having.
+    (async function retryPending() {
+      const pending = readPending();
+      if (!pending) return;
+      try {
+        await send(pending);
+        clearPending();
+        say('Thanks — we\u2019ve got you down.');
+      } catch (err) {
+        // Replaying a rejection (a stale Turnstile token, a validation error)
+        // on every page load would loop forever, so drop it and show what the
+        // server said. Anything else stays queued for next time.
+        if (err.answered && !err.retryable) {
+          clearPending();
+          say(err.message);
+        }
+      }
+    })();
   })();
 </script>
