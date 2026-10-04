@@ -2,6 +2,8 @@ site: daves-exotic-cars
 siteName: Dave's Exotic Cars
 contactCollection: inquiries
 turnstileSiteKey: 0x4AAAAAAFHtLCWg1S7IznJp
+umamiWebsiteId: 29c76126-8d26-4e3b-8aac-ca7033e12da0
+umamiScriptUrl: https://analytics.weaverdigital.io/script.js
 collections:
   - name: cars
     label: Cars

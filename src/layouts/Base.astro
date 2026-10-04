@@ -1,6 +1,12 @@
 ---
 import { url } from '../lib/base';
-import { CATALOG_COLLECTION, CATALOG_LABEL, SITE_NAME } from '../site-config';
+import {
+  CATALOG_COLLECTION,
+  CATALOG_LABEL,
+  SITE_NAME,
+  UMAMI_SCRIPT_URL,
+  UMAMI_WEBSITE_ID,
+} from '../site-config';
 
 export interface Props {
   title: string;
@@ -17,6 +23,11 @@ const { title, siteName = SITE_NAME, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} · {siteName}</title>
     {description && <meta name="description" content={description} />}
+      <!-- Analytics (ADR 0001) — cookieless, so no consent banner, and deferred
+         so it never blocks the page. Absent when the Site isn't registered. -->
+    {UMAMI_WEBSITE_ID && UMAMI_SCRIPT_URL && (
+      <script defer src={UMAMI_SCRIPT_URL} data-website-id={UMAMI_WEBSITE_ID}></script>
+    )}
   </head>
   <body>
     <header class="site-header">
