@@ -7,21 +7,45 @@ export interface Props {
   fields?: string[];
 }
 
-// Reads the admin app's base URL from a public env var rather than
-// hardcoding it, so a Cloudflare Tunnel domain (6.3) can be swapped in per
-// deployment without touching this component. GitHub Actions resolves an
-// unset repo variable (`vars.PUBLIC_SCRIBE_API_URL` in deploy.yml) to an
-// empty string rather than leaving it undefined, so `??` alone doesn't
-// fall back — an empty string must be treated the same as unset.
-const DEFAULT_API_BASE = import.meta.env.PUBLIC_SCRIBE_API_URL || 'https://scribe.weaverdigital.io';
+// Where this Site's forms post. `PUBLIC_SCRIBE_API_URL` is an **organisation**
+// variable on the GitHub org that owns this repo, passed to the build by
+// `deploy.yml`, and it has **no default in a production build** (RFC 0025).
+//
+// It used to fall back to the production admin, which is the failure that rule
+// exists to end: a `PUBLIC_*` value is inlined into the client bundle at build
+// time, so a Site that guessed shipped the wrong endpoint and posted a Visitor's
+// message to whichever Scribe the fallback named — noticed, if ever, by a Client
+// wondering why nobody replied. Failing the build is the cheap version of that.
+//
+// GitHub resolves an unset `vars.*` to an empty string rather than leaving it
+// undefined, so empty has to count as missing. Dev falls back to a *local*
+// admin, never production, so `npm run dev` needs no env file and still cannot
+// write to a real Client's database by omission.
+function scribeApiBase(): string {
+  const configured = import.meta.env.PUBLIC_SCRIBE_API_URL?.trim();
+  if (configured) return configured;
+  if (import.meta.env.PROD) {
+    throw new Error(
+      'PUBLIC_SCRIBE_API_URL is unset. Set it as an organisation variable on the GitHub org that owns ' +
+        'this repo — it has no default in a production build, so this Site posts nowhere by accident.',
+    );
+  }
+  return 'http://localhost:3040';
+}
 
 const {
   site,
   collection,
   turnstileSiteKey,
-  submissionEndpoint = `${DEFAULT_API_BASE}/api/submissions`,
+  submissionEndpoint,
   fields = ['name', 'email', 'message'],
 } = Astro.props;
+
+// Resolved after the props, and only when `submissionEndpoint` was not passed
+// in: `scribeApiBase()` throws, and a caller who named the endpoint has already
+// answered the question it would throw about. A default in the destructuring
+// above would evaluate unconditionally and make that escape hatch a lie.
+const endpoint = submissionEndpoint ?? `${scribeApiBase()}/api/submissions`;
 
 // A field's HTML control is inferred from its name, since this component
 // only receives a flat list of field names (see contact.astro) — required
@@ -42,7 +66,7 @@ function labelFor(field: string): string {
     .replace(/^./, (c) => c.toUpperCase());
 }
 ---
-<form id="scribe-contact-form" data-site={site} data-collection={collection} data-endpoint={submissionEndpoint} data-scribe-retry>
+<form id="scribe-contact-form" data-site={site} data-collection={collection} data-endpoint={endpoint} data-scribe-retry>
   {fields.map((field) => (
     TEXTAREA_FIELDS.has(field) ? (
       <label>
